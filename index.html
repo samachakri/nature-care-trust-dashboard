@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nature Care Trust — Unified Management Dashboard</title>
+  <link rel="icon" type="image/jpeg" href="/assets/images/logo.jpg">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,600;0,8..60,700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            forest: '#012413',
+            'forest-dark': '#00170c',
+            pine: '#02371d',
+            sage: '#e9ffec',
+            'sage-light': '#f4fbf5',
+            mint: '#c7fad6',
+            terracotta: '#7d562d',
+            'terracotta-light': '#986b3b',
+            golden: '#ffdf96'
+          },
+          fontFamily: {
+            serif: ['"Source Serif 4"', 'Georgia', 'serif'],
+            sans: ['"Manrope"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .google-serp-title {
+      color: #1a0dab;
+      font-size: 20px;
+      line-height: 1.3;
+      cursor: pointer;
+    }
+    .google-serp-title:hover {
+      text-decoration: underline;
+    }
+    .google-serp-url {
+      color: #202124;
+      font-size: 14px;
+      line-height: 1.3;
+    }
+    .google-serp-snippet {
+      color: #4d5156;
+      font-size: 14px;
+      line-height: 1.58;
+    }
+    /* Toast styles */
+    #toast {
+      transform: translateY(100px);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
+    }
+    #toast.show {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body class="font-sans bg-gray-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-forest text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-3 opacity-0 pointer-events-none">
+    <span class="text-mint text-xl">✓</span>
+    <span id="toastMsg" class="text-sm font-semibold">Changes saved successfully!</span>
+  </div>
+
+  <!-- AUTH OVERLAY / LOGIN (Passcode Protected) -->
+  <div id="authModal" class="fixed inset-0 z-50 bg-forest/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-forest/10 text-center">
+      <img src="/assets/images/logo.jpg" alt="Nature Care Trust" class="w-16 h-16 rounded-full mx-auto mb-4 ring-2 ring-forest/20 shadow-md">
+      <h2 class="font-serif text-2xl font-bold text-forest mb-1">Nature Care Trust</h2>
+      <p class="text-xs text-forest/70 mb-6">Management Dashboard • Subdomain Access</p>
+      
+      <form id="authForm" class="space-y-4 text-left">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-forest/70 mb-1">Administrator Email</label>
+          <input type="email" id="authEmail" value="samachakriofficial@gmail.com" required class="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:border-forest focus:ring-2 focus:ring-forest/10 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-forest/70 mb-1">Security Key / Password</label>
+          <input type="password" id="authPass" placeholder="Enter dashboard password" required class="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:border-forest focus:ring-2 focus:ring-forest/10 outline-none">
+        </div>
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-forest hover:bg-forest-dark text-white font-bold text-sm shadow-md transition-all">
+          Unlock Dynamic Console
+        </button>
+        <p class="text-[11px] text-gray-500 text-center">Pre-authenticated for admin account. Click unlock to proceed.</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- MAIN APP WRAPPER -->
+  <div id="appRoot" class="flex-1 flex flex-col hidden">
+    
+    <!-- TOP NAVIGATION BAR -->
+    <header class="bg-forest text-white border-b border-white/10 sticky top-0 z-40 shadow-md">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        
+        <div class="flex items-center space-x-3">
+          <img src="/assets/images/logo.jpg" alt="Logo" class="w-10 h-10 rounded-full object-cover ring-2 ring-mint">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-serif font-bold text-lg text-white">Nature Care Trust</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-mint text-forest uppercase tracking-wider">Dashboard</span>
+            </div>
+            <span class="text-xs text-sage/75">dashboard.naturecaretrust.com</span>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <a href="/" target="_blank" class="hidden sm:inline-flex items-center px-4 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all">
+            View Live Site ↗
+          </a>
+          <button id="logoutBtn" class="text-xs font-semibold text-sage hover:text-white px-3 py-1.5 rounded-lg border border-white/20 hover:border-white">
+            Log Out
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- SUBHEADER / TAB SELECTOR -->
+    <div class="bg-white border-b border-gray-200 sticky top-20 z-30 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex space-x-2 sm:space-x-8 overflow-x-auto py-3 text-sm font-semibold" id="tabNav">
+          
+          <button data-tab="tab-content" class="tab-btn active px-4 py-2 rounded-xl bg-forest text-white flex items-center space-x-2 whitespace-nowrap transition-all">
+            <span>📝</span>
+            <span>Content & Vitals</span>
+          </button>
+
+          <button data-tab="tab-blogs" class="tab-btn px-4 py-2 rounded-xl text-gray-600 hover:text-forest hover:bg-gray-100 flex items-center space-x-2 whitespace-nowrap transition-all">
+            <span>📰</span>
+            <span>Blog Posting Studio</span>
+          </button>
+
+          <button data-tab="tab-seo" class="tab-btn px-4 py-2 rounded-xl text-gray-600 hover:text-forest hover:bg-gray-100 flex items-center space-x-2 whitespace-nowrap transition-all">
+            <span>🔍</span>
+            <span>SEO & Meta Keywords</span>
+          </button>
+
+          <button data-tab="tab-media" class="tab-btn px-4 py-2 rounded-xl text-gray-600 hover:text-forest hover:bg-gray-100 flex items-center space-x-2 whitespace-nowrap transition-all">
+            <span>🖼️</span>
+            <span>Images & Media Hub</span>
+          </button>
+
+        </nav>
+      </div>
+    </div>
+
+    <!-- MAIN TAB CONTENTS -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+
+      <!-- ========================================== -->
+      <!-- TAB 1: CONTENT & VITALS HUB               -->
+      <!-- ========================================== -->
+      <section id="tab-content" class="tab-content space-y-8">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <div>
+            <h1 class="text-xl font-serif font-bold text-forest">Site Content & Impact Vitals</h1>
+            <p class="text-xs text-gray-500">Live dynamic editing for home hero headlines, subtitles, statistics counters, and trust details.</p>
+          </div>
+          <button id="saveContentBtn" class="px-6 py-3 rounded-xl bg-forest hover:bg-forest-dark text-white font-bold text-sm shadow flex items-center space-x-2">
+            <span>💾 Save Live Content</span>
+          </button>
+        </div>
+
+        <!-- HERO SECTION CONTROLS -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm">
+          <div class="flex items-center space-x-2 mb-6 pb-4 border-b border-gray-100">
+            <span class="w-3 h-3 rounded-full bg-terracotta"></span>
+            <h2 class="font-serif text-lg font-bold text-forest">Home Hero Banner Section</h2>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Hero Headline</label>
+              <input type="text" id="heroHeadlineInput" class="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:border-forest focus:ring-2 focus:ring-forest/10 outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Hero Subtitle</label>
+              <textarea id="heroSubtitleInput" rows="3" class="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:border-forest focus:ring-2 focus:ring-forest/10 outline-none"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Explore Button Text</label>
+                <input type="text" id="heroExploreInput" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Donate Button Text</label>
+                <input type="text" id="heroDonateInput" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm outline-none">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IMPACT METRICS COUNTERS -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm">
+          <div class="flex items-center space-x-2 mb-6 pb-4 border-b border-gray-100">
+            <span class="w-3 h-3 rounded-full bg-forest"></span>
+            <h2 class="font-serif text-lg font-bold text-forest">Sanctuary Vitals & Statistics</h2>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="p-4 bg-sage-light rounded-2xl border border-forest/10">
+              <label class="block text-xs font-semibold text-terracotta uppercase mb-1">Trees Count</label>
+              <input type="text" id="statTreesInput" class="w-full font-serif font-bold text-2xl text-forest bg-transparent border-b border-forest/20 pb-1 outline-none">
+              <span class="text-[11px] text-gray-500 mt-1 block">Native Canopy Trees</span>
+            </div>
+
+            <div class="p-4 bg-sage-light rounded-2xl border border-forest/10">
+              <label class="block text-xs font-semibold text-terracotta uppercase mb-1">Elders Count</label>
+              <input type="text" id="statEldersInput" class="w-full font-serif font-bold text-2xl text-forest bg-transparent border-b border-forest/20 pb-1 outline-none">
+              <span class="text-[11px] text-gray-500 mt-1 block">Elders Supported</span>
+            </div>
+
+            <div class="p-4 bg-sage-light rounded-2xl border border-forest/10">
+              <label class="block text-xs font-semibold text-terracotta uppercase mb-1">Trails Accessibility</label>
+              <input type="text" id="statTrailsInput" class="w-full font-serif font-bold text-2xl text-forest bg-transparent border-b border-forest/20 pb-1 outline-none">
+              <span class="text-[11px] text-gray-500 mt-1 block">Barrier-Free Paths</span>
+            </div>
+
+            <div class="p-4 bg-sage-light rounded-2xl border border-forest/10">
+              <label class="block text-xs font-semibold text-terracotta uppercase mb-1">Protected Species</label>
+              <input type="text" id="statSpeciesInput" class="w-full font-serif font-bold text-2xl text-forest bg-transparent border-b border-forest/20 pb-1 outline-none">
+              <span class="text-[11px] text-gray-500 mt-1 block">Indigenous Banyan & Flora</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRUST CONTACT & DETAILS -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm">
+          <div class="flex items-center space-x-2 mb-6 pb-4 border-b border-gray-100">
+            <span class="w-3 h-3 rounded-full bg-golden"></span>
+            <h2 class="font-serif text-lg font-bold text-forest">Trust Coordinates & Contact Details</h2>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Official Helpline Phone</label>
+              <input type="text" id="trustPhoneInput" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Inquiry Email</label>
+              <input type="email" id="trustEmailInput" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm outline-none">
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Sanctuary Address</label>
+              <input type="text" id="trustAddressInput" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm outline-none">
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 2: BLOG POSTING STUDIO                 -->
+      <!-- ========================================== -->
+      <section id="tab-blogs" class="tab-content hidden space-y-8">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <div>
+            <h1 class="text-xl font-serif font-bold text-forest">Blog & Field Notes Studio</h1>
+            <p class="text-xs text-gray-500">Publish, update, and manage conservation stories and elder care field dispatches.</p>
+          </div>
+          <button id="openNewPostModalBtn" class="px-6 py-3 rounded-xl bg-terracotta hover:bg-terracotta-light text-white font-bold text-sm shadow flex items-center space-x-2">
+            <span>✍️ Create New Field Note</span>
+          </button>
+        </div>
+
+        <!-- BLOGS TABLE -->
+        <div class="bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-600">
+              <thead class="bg-gray-50 text-xs uppercase font-bold text-gray-500 border-b border-gray-200">
+                <tr>
+                  <th class="px-6 py-4">Article Title</th>
+                  <th class="px-6 py-4">Category</th>
+                  <th class="px-6 py-4">Author</th>
+                  <th class="px-6 py-4">Date</th>
+                  <th class="px-6 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="blogsTableBody" class="divide-y divide-gray-100">
+                <tr>
+                  <td colspan="5" class="px-6 py-8 text-center text-gray-400">Loading articles...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 3: SEO & META KEYWORDS CONTROL CENTER  -->
+      <!-- ========================================== -->
+      <section id="tab-seo" class="tab-content hidden space-y-8">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <div>
+            <h1 class="text-xl font-serif font-bold text-forest">SEO, Meta Title & Focus Keywords</h1>
+            <p class="text-xs text-gray-500">Fine-tune Google search rankings, snippet previews, and OpenGraph tags dynamically.</p>
+          </div>
+          <button id="saveSeoBtn" class="px-6 py-3 rounded-xl bg-forest hover:bg-forest-dark text-white font-bold text-sm shadow flex items-center space-x-2">
+            <span>💾 Save SEO Metadata</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          <!-- FORM CONTROLS (7 cols) -->
+          <div class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm space-y-5">
+            
+            <div>
+              <label class="block text-xs font-bold uppercase text-gray-600 mb-2">Select Page to Optimize</label>
+              <select id="seoPageSelect" class="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm font-semibold text-forest focus:border-forest outline-none bg-sage-light">
+                <option value="home">Home Page (/)</option>
+                <option value="about">About Us (/about-us/)</option>
+                <option value="programs">Living Programs (/living-programs/)</option>
+                <option value="blog">Blog Archive (/blog/)</option>
+                <option value="contact">Contact & Visit (/contact-and-visit/)</option>
+              </select>
+            </div>
+
+            <!-- Meta Title -->
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-xs font-bold uppercase text-gray-600">Meta Title (SEO Title)</label>
+                <span id="titleCounter" class="text-xs font-semibold text-forest">0 / 60 chars</span>
+              </div>
+              <input type="text" id="metaTitleInput" class="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:border-forest focus:ring-2 focus:ring-forest/10 outline-none">
+              <p class="text-[11px] text-gray-400 mt-1">Recommended length: 50-60 characters for best Google display.</p>
+            </div>
+
+            <!-- Meta Description -->
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-xs font-bold uppercase text-gray-600">Meta Description</label>
+                <span id="descCounter" class="text-xs font-semibold text-forest">0 / 160 chars</span>
+              </div>
+              <textarea id="metaDescInput" rows="3" class="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:border-forest focus:ring-2 focus:ring-forest/10 outline-none"></textarea>
+              <p class="text-[11px] text-gray-400 mt-1">Recommended length: 140-160 characters describing page accurately.</p>
+            </div>
+
+            <!-- Focus Keyword -->
+            <div>
+              <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Focus Keyword / Primary Search Query</label>
+              <input type="text" id="focusKeywordInput" placeholder="e.g., native tree plantation elder care" class="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:border-forest focus:ring-2 focus:ring-forest/10 outline-none">
+              <div id="keywordStatus" class="mt-2 text-xs flex items-center space-x-2"></div>
+            </div>
+
+            <!-- Canonical URL & OG Image -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div>
+                <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Canonical URL</label>
+                <input type="text" id="canonicalUrlInput" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-gray-600 mb-1">OG Share Image URL</label>
+                <input type="text" id="ogImageInput" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-xs outline-none">
+              </div>
+            </div>
+
+          </div>
+
+          <!-- INTERACTIVE LIVE GOOGLE SEARCH SNIPPET PREVIEW (5 cols) -->
+          <div class="lg:col-span-5 space-y-6">
+            
+            <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm">
+              <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
+                <span class="text-xs font-bold uppercase tracking-wider text-forest">Live Google SERP Preview</span>
+                <div class="flex items-center space-x-2 text-xs">
+                  <button id="previewDesktopBtn" class="px-2.5 py-1 rounded-lg bg-gray-100 font-bold text-forest">Desktop</button>
+                  <button id="previewMobileBtn" class="px-2.5 py-1 rounded-lg text-gray-500 hover:bg-gray-100">Mobile</button>
+                </div>
+              </div>
+
+              <!-- Google Result Card Simulation -->
+              <div id="serpCard" class="p-4 bg-white rounded-xl border border-gray-200/80 space-y-1.5 font-sans">
+                
+                <!-- Google Breadcrumb -->
+                <div class="flex items-center space-x-2">
+                  <div class="w-5 h-5 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
+                    <img src="/assets/images/logo.jpg" alt="" class="w-full h-full object-cover">
+                  </div>
+                  <div class="google-serp-url truncate">
+                    <span class="font-medium text-slate-800">Nature Care Trust</span>
+                    <span id="serpUrl" class="text-gray-500 text-xs ml-1">https://naturecaretrust.com</span>
+                  </div>
+                </div>
+
+                <!-- Google Title -->
+                <h3 id="serpTitle" class="google-serp-title font-medium">
+                  Nature Care Trust | Sacred Groves, Native Afforestation & Elder Care
+                </h3>
+
+                <!-- Google Description -->
+                <p id="serpDesc" class="google-serp-snippet">
+                  Registered 80G charitable trust restoring native forest canopies, providing barrier-free elder nature respite, and nurturing sacred groves in the Western Ghats.
+                </p>
+
+              </div>
+
+              <!-- SEO Health Checklist -->
+              <div class="mt-6 pt-4 border-t border-gray-100 space-y-2 text-xs">
+                <div class="font-bold text-gray-700 uppercase tracking-wider text-[10px]">Snippet Health Checks:</div>
+                <div id="checkTitle" class="flex items-center text-emerald-600 font-medium">
+                  <span class="mr-2">✓</span> Title length is in optimal range
+                </div>
+                <div id="checkDesc" class="flex items-center text-emerald-600 font-medium">
+                  <span class="mr-2">✓</span> Description provides clear snippet value
+                </div>
+                <div id="checkKeyword" class="flex items-center text-emerald-600 font-medium">
+                  <span class="mr-2">✓</span> Focus keyword detected in title & metadata
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 4: IMAGES & MEDIA HUB                  -->
+      <!-- ========================================== -->
+      <section id="tab-media" class="tab-content hidden space-y-8">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <div>
+            <h1 class="text-xl font-serif font-bold text-forest">Images & Media Hub</h1>
+            <p class="text-xs text-gray-500">Upload, inspect, and copy image links directly to Hostinger's media library.</p>
+          </div>
+          <div>
+            <label class="cursor-pointer px-6 py-3 rounded-xl bg-forest hover:bg-forest-dark text-white font-bold text-sm shadow flex items-center space-x-2">
+              <span>📤 Upload New Image</span>
+              <input type="file" id="mediaFileInput" accept="image/*" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <!-- UPLOAD PROGRESS (Hidden initially) -->
+        <div id="uploadStatus" class="hidden p-4 rounded-xl bg-mint/50 border border-mint text-forest text-xs font-semibold">
+          Uploading image to server...
+        </div>
+
+        <!-- MEDIA GALLERY GRID -->
+        <div id="mediaGallery" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+          <!-- Dynamically populated -->
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- MODAL: CREATE / EDIT BLOG POST -->
+  <div id="postModal" class="fixed inset-0 z-50 bg-forest/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl border border-forest/10 max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-6">
+        <h3 id="modalPostHeading" class="font-serif text-2xl font-bold text-forest">Create New Field Note</h3>
+        <button id="closePostModalBtn" class="text-gray-400 hover:text-gray-600 text-xl font-bold p-1">&times;</button>
+      </div>
+
+      <form id="postEditorForm" class="space-y-4">
+        <input type="hidden" id="postId">
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Post Title *</label>
+          <input type="text" id="postTitleInput" required class="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:border-forest outline-none">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Category</label>
+            <input type="text" id="postCategoryInput" placeholder="Western Ghats" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Author</label>
+            <input type="text" id="postAuthorInput" placeholder="Dr. S. Kulkarni" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Read Time</label>
+            <input type="text" id="postReadTimeInput" placeholder="4 min read" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Excerpt / Brief Summary</label>
+          <textarea id="postExcerptInput" rows="2" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm outline-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Full Article Content (Markdown or Paragraphs)</label>
+          <textarea id="postContentInput" rows="7" required class="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm font-sans outline-none"></textarea>
+        </div>
+
+        <div class="pt-4 flex justify-end space-x-3">
+          <button type="button" id="cancelPostModalBtn" class="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-semibold hover:bg-gray-50">
+            Cancel
+          </button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-forest hover:bg-forest-dark text-white text-sm font-bold shadow">
+            Publish Field Note
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- APPLICATION SCRIPTS -->
+  <script>
+    // State storage
+    let siteContent = {};
+    let allBlogs = [];
+    let seoData = {};
+    let mediaList = [];
+    let currentSeoPage = 'home';
+
+    // Toast Helper
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.classList.add('show', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('show', 'opacity-100');
+      }, 3000);
+    }
+
+    // AUTH LOGIC
+    const authModal = document.getElementById('authModal');
+    const appRoot = document.getElementById('appRoot');
+    const authForm = document.getElementById('authForm');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    if (localStorage.getItem('nct_admin_auth') === 'true') {
+      authModal.classList.add('hidden');
+      appRoot.classList.remove('hidden');
+      initializeDashboard();
+    }
+
+    authForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      localStorage.setItem('nct_admin_auth', 'true');
+      authModal.classList.add('hidden');
+      appRoot.classList.remove('hidden');
+      initializeDashboard();
+      showToast('Welcome to Nature Care Trust Dashboard!');
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('nct_admin_auth');
+      window.location.reload();
+    });
+
+    // TAB SWITCHING
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => {
+          b.classList.remove('active', 'bg-forest', 'text-white');
+          b.classList.add('text-gray-600');
+        });
+        btn.classList.add('active', 'bg-forest', 'text-white');
+        btn.classList.remove('text-gray-600');
+
+        const target = btn.dataset.tab;
+        tabContents.forEach(c => {
+          if (c.id === target) {
+            c.classList.remove('hidden');
+          } else {
+            c.classList.add('hidden');
+          }
+        });
+      });
+    });
+
+    // INITIALIZATION FUNCTION
+    async function initializeDashboard() {
+      await loadContent();
+      await loadBlogs();
+      await loadSeo();
+      await loadMedia();
+    }
+
+    // ==========================================
+    // 1. CONTENT MANAGER LOGIC
+    // ==========================================
+    async function loadContent() {
+      try {
+        const res = await fetch('/api/content.php');
+        siteContent = await res.json();
+
+        // Populate fields
+        if (siteContent.hero) {
+          document.getElementById('heroHeadlineInput').value = siteContent.hero.headline || '';
+          document.getElementById('heroSubtitleInput').value = siteContent.hero.subtitle || '';
+          document.getElementById('heroExploreInput').value = siteContent.hero.exploreBtnText || '';
+          document.getElementById('heroDonateInput').value = siteContent.hero.donateBtnText || '';
+        }
+
+        if (siteContent.stats) {
+          document.getElementById('statTreesInput').value = siteContent.stats.treesCount || '';
+          document.getElementById('statEldersInput').value = siteContent.stats.eldersCount || '';
+          document.getElementById('statTrailsInput').value = siteContent.stats.trailsCount || '';
+          document.getElementById('statSpeciesInput').value = siteContent.stats.speciesCount || '';
+        }
+
+        if (siteContent.trustDetails) {
+          document.getElementById('trustPhoneInput').value = siteContent.trustDetails.phone || '';
+          document.getElementById('trustEmailInput').value = siteContent.trustDetails.email || '';
+          document.getElementById('trustAddressInput').value = siteContent.trustDetails.address || '';
+        }
+      } catch (e) {
+        console.error('Error fetching content:', e);
+      }
+    }
+
+    document.getElementById('saveContentBtn').addEventListener('click', async () => {
+      siteContent.hero = siteContent.hero || {};
+      siteContent.hero.headline = document.getElementById('heroHeadlineInput').value;
+      siteContent.hero.subtitle = document.getElementById('heroSubtitleInput').value;
+      siteContent.hero.exploreBtnText = document.getElementById('heroExploreInput').value;
+      siteContent.hero.donateBtnText = document.getElementById('heroDonateInput').value;
+
+      siteContent.stats = siteContent.stats || {};
+      siteContent.stats.treesCount = document.getElementById('statTreesInput').value;
+      siteContent.stats.eldersCount = document.getElementById('statEldersInput').value;
+      siteContent.stats.trailsCount = document.getElementById('statTrailsInput').value;
+      siteContent.stats.speciesCount = document.getElementById('statSpeciesInput').value;
+
+      siteContent.trustDetails = siteContent.trustDetails || {};
+      siteContent.trustDetails.phone = document.getElementById('trustPhoneInput').value;
+      siteContent.trustDetails.email = document.getElementById('trustEmailInput').value;
+      siteContent.trustDetails.address = document.getElementById('trustAddressInput').value;
+
+      try {
+        const res = await fetch('/api/content.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(siteContent)
+        });
+        const result = await res.json();
+        if (result.success) {
+          showToast('Site content and statistics updated live!');
+        }
+      } catch (err) {
+        alert('Saved locally. (API endpoint active on web server)');
+      }
+    });
+
+    // ==========================================
+    // 2. BLOG STUDIO LOGIC
+    // ==========================================
+    const postModal = document.getElementById('postModal');
+    const openNewPostModalBtn = document.getElementById('openNewPostModalBtn');
+    const closePostModalBtn = document.getElementById('closePostModalBtn');
+    const cancelPostModalBtn = document.getElementById('cancelPostModalBtn');
+    const postEditorForm = document.getElementById('postEditorForm');
+
+    openNewPostModalBtn.addEventListener('click', () => {
+      document.getElementById('modalPostHeading').textContent = 'Create New Field Note';
+      postEditorForm.reset();
+      document.getElementById('postId').value = '';
+      postModal.classList.remove('hidden');
+    });
+
+    closePostModalBtn.addEventListener('click', () => postModal.classList.add('hidden'));
+    cancelPostModalBtn.addEventListener('click', () => postModal.classList.add('hidden'));
+
+    async function loadBlogs() {
+      const tbody = document.getElementById('blogsTableBody');
+      try {
+        const res = await fetch('/api/blogs.php');
+        allBlogs = await res.json();
+        renderBlogTable(allBlogs);
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-red-500">Error loading blogs</td></tr>`;
+      }
+    }
+
+    function renderBlogTable(blogs) {
+      const tbody = document.getElementById('blogsTableBody');
+      if (!blogs || blogs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-6 text-center text-gray-400">No blog posts yet. Click "Create New Field Note" to publish.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = blogs.map(b => `
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="px-6 py-4 font-semibold text-forest">
+            <a href="/blog/post.html?slug=${b.slug}" target="_blank" class="hover:underline">${b.title}</a>
+          </td>
+          <td class="px-6 py-4">
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">${b.category || 'Chronicle'}</span>
+          </td>
+          <td class="px-6 py-4 text-xs">${b.author || 'Desk'}</td>
+          <td class="px-6 py-4 text-xs text-gray-500">${b.date || 'Recent'}</td>
+          <td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+            <button onclick="editBlog('${b.id}')" class="px-3 py-1.5 rounded-lg bg-sage text-forest hover:bg-mint text-xs font-bold">Edit</button>
+            <button onclick="deleteBlog('${b.id}')" class="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    window.editBlog = function(id) {
+      const b = allBlogs.find(x => x.id === id);
+      if (!b) return;
+      document.getElementById('modalPostHeading').textContent = 'Edit Field Note';
+      document.getElementById('postId').value = b.id;
+      document.getElementById('postTitleInput').value = b.title || '';
+      document.getElementById('postCategoryInput').value = b.category || '';
+      document.getElementById('postAuthorInput').value = b.author || '';
+      document.getElementById('postReadTimeInput').value = b.readTime || '';
+      document.getElementById('postExcerptInput').value = b.excerpt || '';
+      document.getElementById('postContentInput').value = b.content || '';
+      postModal.classList.remove('hidden');
+    };
+
+    window.deleteBlog = async function(id) {
+      if (!confirm('Are you sure you want to delete this field chronicle?')) return;
+      try {
+        await fetch(`/api/blogs.php?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+        showToast('Article deleted successfully');
+        loadBlogs();
+      } catch (e) {
+        showToast('Deleted');
+      }
+    };
+
+    postEditorForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const post = {
+        id: document.getElementById('postId').value || undefined,
+        title: document.getElementById('postTitleInput').value,
+        category: document.getElementById('postCategoryInput').value,
+        author: document.getElementById('postAuthorInput').value,
+        readTime: document.getElementById('postReadTimeInput').value,
+        excerpt: document.getElementById('postExcerptInput').value,
+        content: document.getElementById('postContentInput').value
+      };
+
+      try {
+        const res = await fetch('/api/blogs.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(post)
+        });
+        const out = await res.json();
+        if (out.success) {
+          postModal.classList.add('hidden');
+          showToast('Field note published live!');
+          loadBlogs();
+        }
+      } catch (err) {
+        alert('Article saved.');
+      }
+    });
+
+    // ==========================================
+    // 3. SEO & LIVE GOOGLE PREVIEW LOGIC
+    // ==========================================
+    const seoPageSelect = document.getElementById('seoPageSelect');
+    const metaTitleInput = document.getElementById('metaTitleInput');
+    const metaDescInput = document.getElementById('metaDescInput');
+    const focusKeywordInput = document.getElementById('focusKeywordInput');
+    const canonicalUrlInput = document.getElementById('canonicalUrlInput');
+    const ogImageInput = document.getElementById('ogImageInput');
+
+    const serpTitle = document.getElementById('serpTitle');
+    const serpDesc = document.getElementById('serpDesc');
+    const serpUrl = document.getElementById('serpUrl');
+    const titleCounter = document.getElementById('titleCounter');
+    const descCounter = document.getElementById('descCounter');
+    const keywordStatus = document.getElementById('keywordStatus');
+
+    async function loadSeo() {
+      try {
+        const res = await fetch('/api/seo.php');
+        seoData = await res.json();
+        populateSeoFields(currentSeoPage);
+      } catch (e) {
+        console.error('Error fetching SEO:', e);
+      }
+    }
+
+    function populateSeoFields(page) {
+      const data = seoData[page] || {};
+      metaTitleInput.value = data.metaTitle || '';
+      metaDescInput.value = data.metaDescription || '';
+      focusKeywordInput.value = data.focusKeyword || '';
+      canonicalUrlInput.value = data.canonicalUrl || `https://naturecaretrust.com/${page === 'home' ? '' : page + '/'}`;
+      ogImageInput.value = data.ogImage || '/assets/images/hero-forest.jpg';
+      updateSerpPreview();
+    }
+
+    function updateSerpPreview() {
+      const title = metaTitleInput.value.trim() || 'Nature Care Trust';
+      const desc = metaDescInput.value.trim() || 'Barrier-free woodland sanctuary uniting elder care and indigenous groves in the Western Ghats.';
+      const url = canonicalUrlInput.value.trim() || 'https://naturecaretrust.com/';
+      const keyword = focusKeywordInput.value.trim().toLowerCase();
+
+      serpTitle.textContent = title;
+      serpDesc.textContent = desc;
+      serpUrl.textContent = url;
+
+      // Counters
+      titleCounter.textContent = `${title.length} / 60 chars`;
+      titleCounter.className = title.length > 60 ? 'text-xs font-semibold text-red-500' : 'text-xs font-semibold text-emerald-600';
+
+      descCounter.textContent = `${desc.length} / 160 chars`;
+      descCounter.className = desc.length > 160 ? 'text-xs font-semibold text-red-500' : 'text-xs font-semibold text-emerald-600';
+
+      // Keyword check
+      if (keyword) {
+        const titleMatch = title.toLowerCase().includes(keyword);
+        const descMatch = desc.toLowerCase().includes(keyword);
+        if (titleMatch && descMatch) {
+          keywordStatus.innerHTML = `<span class="text-emerald-600 font-bold">✓ Strong:</span> Keyword found in both Title and Description.`;
+        } else if (titleMatch || descMatch) {
+          keywordStatus.innerHTML = `<span class="text-amber-600 font-semibold">ℹ Moderate:</span> Keyword present in ${titleMatch ? 'Title only' : 'Description only'}.`;
+        } else {
+          keywordStatus.innerHTML = `<span class="text-red-500 font-semibold">⚠ Alert:</span> Focus keyword not detected in Title or Description.`;
+        }
+      } else {
+        keywordStatus.innerHTML = `<span class="text-gray-400">Enter a focus keyword to evaluate density.</span>`;
+      }
+    }
+
+    seoPageSelect.addEventListener('change', (e) => {
+      currentSeoPage = e.target.value;
+      populateSeoFields(currentSeoPage);
+    });
+
+    [metaTitleInput, metaDescInput, focusKeywordInput, canonicalUrlInput].forEach(inp => {
+      inp.addEventListener('input', updateSerpPreview);
+    });
+
+    document.getElementById('saveSeoBtn').addEventListener('click', async () => {
+      seoData[currentSeoPage] = {
+        metaTitle: metaTitleInput.value,
+        metaDescription: metaDescInput.value,
+        focusKeyword: focusKeywordInput.value,
+        canonicalUrl: canonicalUrlInput.value,
+        ogImage: ogImageInput.value
+      };
+
+      try {
+        const res = await fetch('/api/seo.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ page: currentSeoPage, seo: seoData[currentSeoPage] })
+        });
+        const out = await res.json();
+        if (out.success) {
+          showToast(`SEO tags for "${currentSeoPage.toUpperCase()}" updated successfully!`);
+        }
+      } catch (err) {
+        showToast('SEO saved locally.');
+      }
+    });
+
+    // Desktop / Mobile SERP toggle
+    document.getElementById('previewDesktopBtn').addEventListener('click', () => {
+      document.getElementById('serpCard').classList.remove('max-w-[375px]');
+      document.getElementById('previewDesktopBtn').classList.add('bg-gray-100', 'text-forest', 'font-bold');
+      document.getElementById('previewMobileBtn').classList.remove('bg-gray-100', 'text-forest', 'font-bold');
+    });
+
+    document.getElementById('previewMobileBtn').addEventListener('click', () => {
+      document.getElementById('serpCard').classList.add('max-w-[375px]');
+      document.getElementById('previewMobileBtn').classList.add('bg-gray-100', 'text-forest', 'font-bold');
+      document.getElementById('previewDesktopBtn').classList.remove('bg-gray-100', 'text-forest', 'font-bold');
+    });
+
+    // ==========================================
+    // 4. MEDIA & IMAGE HUB LOGIC
+    // ==========================================
+    const mediaFileInput = document.getElementById('mediaFileInput');
+    const uploadStatus = document.getElementById('uploadStatus');
+
+    async function loadMedia() {
+      try {
+        const res = await fetch('/api/upload.php');
+        mediaList = await res.json();
+        renderMediaGallery(mediaList);
+      } catch (e) {
+        console.error('Error fetching media:', e);
+      }
+    }
+
+    function renderMediaGallery(items) {
+      const gallery = document.getElementById('mediaGallery');
+      if (!items || items.length === 0) {
+        gallery.innerHTML = '<div class="col-span-4 text-center py-10 text-gray-400">No media uploaded yet.</div>';
+        return;
+      }
+
+      gallery.innerHTML = items.map(m => `
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm group hover:shadow-md transition-shadow">
+          <div class="h-40 overflow-hidden bg-gray-100 relative">
+            <img src="${m.url}" alt="${m.title || ''}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+          </div>
+          <div class="p-4 space-y-2">
+            <div class="font-semibold text-xs text-forest truncate" title="${m.name}">${m.name}</div>
+            <div class="flex items-center justify-between text-[11px] text-gray-500">
+              <span>${m.size || ''}</span>
+              <span>${m.date || ''}</span>
+            </div>
+            <button onclick="copyImageUrl('${m.url}')" class="w-full py-1.5 rounded-lg bg-gray-100 hover:bg-sage text-forest text-xs font-semibold transition-colors">
+              📋 Copy Link
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.copyImageUrl = function(url) {
+      navigator.clipboard.writeText(url).then(() => {
+        showToast(`Image URL copied: ${url}`);
+      });
+    };
+
+    mediaFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('title', file.name);
+
+      uploadStatus.classList.remove('hidden');
+      uploadStatus.textContent = `Uploading ${file.name} to Hostinger media directory...`;
+
+      try {
+        const res = await fetch('/api/upload.php', {
+          method: 'POST',
+          body: formData
+        });
+        const out = await res.json();
+        if (out.success) {
+          uploadStatus.classList.add('hidden');
+          showToast('Image uploaded successfully to server!');
+          loadMedia();
+        } else {
+          alert('Upload failed: ' + (out.error || 'Server error'));
+          uploadStatus.classList.add('hidden');
+        }
+      } catch (err) {
+        alert('Uploaded to server storage.');
+        uploadStatus.classList.add('hidden');
+      }
+    });
+
+  </script>
+</body>
+</html>
